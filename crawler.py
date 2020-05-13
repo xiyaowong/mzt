@@ -113,7 +113,7 @@ def main():
     parse_threads = [Thread(target=parse) for _ in range(8)]
 
     for t in parse_threads:
-        t.run()
+        t.start()
 
     for t in parse_threads:
         t.join()
@@ -122,7 +122,7 @@ def main():
 
     dl_threads = [Thread(target=dl) for _ in range(8)]
     for t in dl_threads:
-        t.run()
+        t.start()
     for t in dl_threads:
         t.join()
 
