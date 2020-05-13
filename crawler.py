@@ -43,6 +43,8 @@ def get_parse_id_list() -> list:
         task = json.load(f)
     start = task['start']
     end = task['end']
+    with open(os.path.join(base_dir, 'task.json'), 'w') as f:
+        json.dump({"start": 0, "end": 0}, f)
     if start == 0 and end == 0:
         saved_pic_list = [i[:i.rindex('.')] for i in os.listdir(pics_save_dir)]
         max_id = max(int(i) for i in saved_pic_list)
@@ -54,7 +56,7 @@ def get_parse_id_list() -> list:
 
 
 def parse():
-    while True:
+    while not parse_task.empty():
         saved_pic_list = [i[:i.rindex('.') + 1] for i in os.listdir(pics_save_dir)]
         try:
             parse_id = parse_task.get(timeout=10)
@@ -77,17 +79,18 @@ def parse():
         except Exception as e:
             if isinstance(e, Empty):
                 break
-            print(e)
+            print("[Func: parse {parse_id}]", e)
 
 
 def dl():
     saved_pic_list = os.listdir(pics_save_dir)
-    while True:
+    while not dl_task.empty():
         try:
             pic = dl_task.get(timeout=15)
             pic_url = pic[0]
             pic_name = pic[1]
             pic_type = pic[2]
+            print('[Downloading]: {pic_name}.{pic_type}')
             if f'{pic_name}.{pic_type}' in saved_pic_list:
                 continue
             download(file_url=pic_url,
@@ -98,7 +101,7 @@ def dl():
         except Exception as e:
             if isinstance(e, Empty):
                 break
-            print(e)
+            print("[Func: dl {pic}]", e)
 
 
 def main():
@@ -113,10 +116,12 @@ def main():
     for t in parse_threads:
         t.run()
     time.sleep(2)
+    for t in parse_threads:
+        t.join()
+
     for t in dl_threads:
         t.run()
-
-    for t in [*parse_threads, *dl_threads]:
+    for t in dl_threads:
         t.join()
 
     refresh_data()
