@@ -83,7 +83,6 @@ def parse():
 
 
 def dl():
-    saved_pic_list = os.listdir(pics_save_dir)
     while not dl_task.empty():
         try:
             pic = dl_task.get(timeout=15)
@@ -91,8 +90,7 @@ def dl():
             pic_name = pic[1]
             pic_type = pic[2]
             print(f'[Downloading]: {pic_name}.{pic_type}')
-            if f'{pic_name}.{pic_type}' in saved_pic_list:
-                continue
+            continue
             download(file_url=pic_url,
                      file_name=pic_name,
                      file_type=pic_type,
