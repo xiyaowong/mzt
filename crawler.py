@@ -57,12 +57,12 @@ def get_parse_id_list() -> list:
 
 def parse():
     while not parse_task.empty():
-        saved_pic_list = [i[:i.rindex('.') + 1] for i in os.listdir(pics_save_dir)]
+        saved_pic_list = [i[:i.rindex('.')] for i in os.listdir(pics_save_dir)]
         try:
             parse_id = parse_task.get(timeout=10)
             print(f'[PARSING]: {parse_id}')
 
-            if parse_id in saved_pic_list:
+            if str(parse_id) in saved_pic_list:
                 print(f'{parse_id}已存在！')
                 continue
 
