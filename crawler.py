@@ -50,7 +50,7 @@ def get_parse_id_list() -> list:
         max_id = max(int(i) for i in saved_pic_list)
         start = max_id
         end = newest_id()
-        if start == end or start < end:
+        if start == end or start > end:
             return [1]
     return list(range(start, end))
 
