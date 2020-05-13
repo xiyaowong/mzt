@@ -99,6 +99,7 @@ def download(file_url, file_name=None, file_type=None, save_path="download", hea
                             f.write(chunk)
                             progressbar.update(1024)
             print("下载成功")
-    except Exception:
+    except Exception as e:
+        print('下载失败: ', e)
         remove_file(f"{save_path}/{file_name}")
     return True
