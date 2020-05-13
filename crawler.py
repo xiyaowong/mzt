@@ -119,6 +119,24 @@ def main():
     for t in [*parse_threads, *dl_threads]:
         t.join()
 
+    refresh_data()
+
+
+def refresh_data():
+    saved_pic_list = os.listdir(pics_save_dir)
+    data = {
+        'time': int(time.time()),
+        'count': len(saved_pic_list),
+        'pics': saved_pic_list
+    }
+    with open(os.path.join(base_dir, 'data.json'), 'w') as f:
+        json.dump(data, f)
+        print('[data.json]更新成功！')
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(e)
+        refresh_data()
