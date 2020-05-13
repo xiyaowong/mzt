@@ -93,7 +93,7 @@ def dl():
             download(file_url=pic_url,
                      file_name=pic_name,
                      file_type=pic_type,
-                     headers=base_hd,
+                     headers=base_hd.update({"Host": "cdn1.telesco.pe"}),
                      save_path=pics_save_dir)
         except Exception as e:
             if isinstance(e, Empty):
