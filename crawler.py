@@ -90,7 +90,6 @@ def dl():
             pic_name = pic[1]
             pic_type = pic[2]
             print(f'[Downloading]: {pic_name}.{pic_type}')
-            continue
             download(file_url=pic_url,
                      file_name=pic_name,
                      file_type=pic_type,
