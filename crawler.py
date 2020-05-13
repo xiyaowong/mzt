@@ -71,7 +71,7 @@ def parse():
             imgs = re.findall(r"background-image:url\('(.*?)'\)", rep.text)
             if imgs:
                 img_url = imgs[0]
-                img_name = parse_id
+                img_name = str(parse_id)
                 img_type = img_url[img_url.rindex('.') + 1:]
                 done = [img_url, img_name, img_type]
                 print(f"[PARSE DONE]: {done}")
@@ -93,7 +93,6 @@ def dl():
             print(f'[Downloading]: {pic_name}.{pic_type}')
             if f'{pic_name}.{pic_type}' in saved_pic_list:
                 continue
-            print('==============')
             download(file_url=pic_url,
                      file_name=pic_name,
                      file_type=pic_type,
