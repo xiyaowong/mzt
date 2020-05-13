@@ -90,9 +90,10 @@ def dl():
             pic_url = pic[0]
             pic_name = pic[1]
             pic_type = pic[2]
-            print('[Downloading]: {pic_name}.{pic_type}')
+            print(f'[Downloading]: {pic_name}.{pic_type}')
             if f'{pic_name}.{pic_type}' in saved_pic_list:
                 continue
+            print('==============')
             download(file_url=pic_url,
                      file_name=pic_name,
                      file_type=pic_type,
@@ -101,7 +102,7 @@ def dl():
         except Exception as e:
             if isinstance(e, Empty):
                 break
-            print("[Func: dl {pic}]", e)
+            print(f"[Func: dl {pic}]", e)
 
 
 def main():
