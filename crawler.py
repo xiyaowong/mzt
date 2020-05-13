@@ -111,14 +111,16 @@ def main():
         parse_task.put(parse_id)
 
     parse_threads = [Thread(target=parse) for _ in range(8)]
-    dl_threads = [Thread(target=dl) for _ in range(8)]
 
     for t in parse_threads:
         t.run()
-    time.sleep(2)
+
     for t in parse_threads:
         t.join()
 
+    time.sleep(2)
+
+    dl_threads = [Thread(target=dl) for _ in range(8)]
     for t in dl_threads:
         t.run()
     for t in dl_threads:
