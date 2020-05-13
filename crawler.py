@@ -115,7 +115,7 @@ def main():
     for t in parse_threads:
         t.join()
 
-    time.sleep(2)
+    time.sleep(30)
 
     dl_threads = [Thread(target=dl) for _ in range(8)]
     for t in dl_threads:
