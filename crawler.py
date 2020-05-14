@@ -51,7 +51,7 @@ def get_parse_id_list() -> list:
         start = max_id
         end = newest_id()
         if start == end or start > end:
-            return [1]
+            return []
     return list(range(start, end))
 
 
