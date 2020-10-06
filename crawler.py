@@ -29,7 +29,7 @@ def newest_id() -> int:
     try:
         rep = requests.get('https://t.me/s/botmzt',
                            headers=base_hd.update({"Referer": "https://t.me/botmzt"}), timeout=20)
-        ids = re.findall(r'data-post="botmzt/(\d+)"', rep.text)
+        ids = re.findall(r'https://t\.me/botmzt/(\d+)', rep.text)
         newest_id = max(int(i) for i in ids)
         print(f'最新图片ID：{newest_id}')
         return newest_id
