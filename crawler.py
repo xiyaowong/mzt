@@ -68,7 +68,7 @@ def parse():
 
             url = f"https://t.me/botmzt/{parse_id}?embed=1"
             rep = requests.get(url, headers=base_hd.update({'Referer': url}), timeout=22)
-            imgs = re.findall(r"background-image:url\('(.*?)'\)", rep.text)
+            imgs = re.findall(r"background-image:url\('(http.*?)'\)", rep.text)
             if imgs:
                 img_url = imgs[0]
                 img_name = str(parse_id)
