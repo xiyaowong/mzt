@@ -2,6 +2,7 @@ import json
 import os
 import re
 import time
+from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
 
@@ -9,8 +10,8 @@ import requests
 
 from utils import check_dir, download
 
-base_dir = os.path.abspath(os.path.dirname(__file__))
-pics_save_dir = os.path.join(base_dir, 'pics')
+base_dir = Path(os.path.abspath(os.path.dirname(__file__)))
+pics_save_dir = Path(os.path.join(base_dir, "pics"))
 
 check_dir(pics_save_dir)
 
@@ -18,35 +19,39 @@ parse_task = Queue(maxsize=10000)  # [id]
 dl_task = Queue(maxsize=10000)  # [url, filename, filetype]
 
 base_hd = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    'Origin': 'https://t.me',
-    'Host': 't.me',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "Origin": "https://t.me",
+    "Host": "t.me",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36",
 }
 
 
 def newest_id() -> int:
     try:
-        rep = requests.get('https://t.me/s/botmzt',
-                           headers=base_hd.update({"Referer": "https://t.me/botmzt"}), timeout=20)
-        ids = re.findall(r'https://t\.me/botmzt/(\d+)', rep.text)
+        rep = requests.get(
+            "https://t.me/s/botmzt",
+            headers=base_hd.update({"Referer": "https://t.me/botmzt"}),
+            timeout=20,
+        )
+        ids = re.findall(r"https://t\.me/botmzt/(\d+)", rep.text)
         newest_id = max(int(i) for i in ids)
-        print(f'最新图片ID：{newest_id}')
+        print(f"最新图片ID：{newest_id}")
         return newest_id
     except Exception as e:
         print(e)
     return 0
 
 
-def get_parse_id_list() -> list:
-    with open(os.path.join(base_dir, 'task.json')) as f:
+# region Get IDs to be parsed
+def updates_ids() -> list:
+    with open(os.path.join(base_dir, "task.json")) as f:
         task = json.load(f)
-    start = task['start']
-    end = task['end']
-    with open(os.path.join(base_dir, 'task.json'), 'w') as f:
+    start = task["start"]
+    end = task["end"]
+    with open(os.path.join(base_dir, "task.json"), "w") as f:
         json.dump({"start": 0, "end": 0}, f)
     if start == 0 and end == 0:
-        saved_pic_list = [i[:i.rindex('.')] for i in os.listdir(pics_save_dir)]
+        saved_pic_list = [i[: i.rindex(".")] for i in os.listdir(pics_save_dir)]
         max_id = max(int(i) for i in saved_pic_list)
         start = max_id
         end = newest_id()
@@ -55,24 +60,41 @@ def get_parse_id_list() -> list:
     return list(range(start, end))
 
 
+def missing_ids() -> list:
+    with open(os.path.join(base_dir, "missing_pics.json")) as f:
+        missing_pics: list[str] = json.load(f)
+    return [
+        int(pic_filename[: pic_filename.rindex(".")]) for pic_filename in missing_pics
+    ]
+
+
+def get_parse_id_list() -> list:
+    return [*updates_ids(), *missing_ids()][:500]
+
+
+# endregion
+
+
 def parse():
     while not parse_task.empty():
-        saved_pic_list = [i[:i.rindex('.')] for i in os.listdir(pics_save_dir)]
+        saved_pic_list = [i[: i.rindex(".")] for i in os.listdir(pics_save_dir)]
         try:
             parse_id = parse_task.get(timeout=10)
-            print(f'[PARSING]: {parse_id}')
+            print(f"[PARSING]: {parse_id}")
 
             if str(parse_id) in saved_pic_list:
-                print(f'{parse_id}已存在！')
+                print(f"{parse_id}已存在！")
                 continue
 
             url = f"https://t.me/botmzt/{parse_id}?embed=1&single=1"
-            rep = requests.get(url, headers=base_hd.update({'Referer': url}), timeout=22)
+            rep = requests.get(
+                url, headers=base_hd.update({"Referer": url}), timeout=22
+            )
             imgs = re.findall(r"background-image:url\('(http.*?)'\)", rep.text)
             if imgs:
                 img_url = imgs[0]
                 img_name = str(parse_id)
-                img_type = img_url[img_url.rindex('.') + 1:]
+                img_type = img_url[img_url.rindex(".") + 1 :]
                 done = [img_url, img_name, img_type]
                 print(f"[PARSE DONE]: {done}")
                 dl_task.put(done)
@@ -89,12 +111,14 @@ def dl():
             pic_url = pic[0]
             pic_name = pic[1]
             pic_type = pic[2]
-            print(f'[Downloading]: {pic_name}.{pic_type}')
-            download(file_url=pic_url,
-                     file_name=pic_name,
-                     file_type=pic_type,
-                     headers=base_hd.update({"Host": "cdn1.telesco.pe"}),
-                     save_path=pics_save_dir)
+            print(f"[Downloading]: {pic_name}.{pic_type}")
+            download(
+                file_url=pic_url,
+                file_name=pic_name,
+                file_type=pic_type,
+                headers=base_hd.update({"Host": "cdn1.telesco.pe"}),
+                save_path=pics_save_dir,
+            )
         except Exception as e:
             if isinstance(e, Empty):
                 break
@@ -103,7 +127,7 @@ def dl():
 
 def main():
     parse_id_list = get_parse_id_list()
-    print(f'=======parse_id_list: {parse_id_list}=======')
+    print(f"=======parse_id_list: {parse_id_list}=======")
     for parse_id in parse_id_list:
         parse_task.put(parse_id)
 
@@ -129,13 +153,19 @@ def main():
 def refresh_data():
     saved_pic_list = os.listdir(pics_save_dir)
     data = {
-        'time': int(time.time()),
-        'count': len(saved_pic_list),
-        'pics': saved_pic_list
+        "time": int(time.time()),
+        "count": len(saved_pic_list),
+        "pics": saved_pic_list,
     }
-    with open(os.path.join(base_dir, 'data.json'), 'w') as f:
-        json.dump(data, f)
-        print('[data.json]更新成功！')
+    Path("data.json").write_text(json.dumps(data))
+
+    # Update missing pics data
+    last_missing_pics = json.loads(Path("missing_pics.json").read_text())
+    new_missing_pics = []
+    for pic in last_missing_pics:
+        if not (pics_save_dir / pic).exists():
+            new_missing_pics.append(pic)
+    Path("missing_pics.json").write_text(json.dumps(new_missing_pics))
 
 
 if __name__ == "__main__":
