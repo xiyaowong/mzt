@@ -66,7 +66,7 @@ def parse():
                 print(f'{parse_id}已存在！')
                 continue
 
-            url = f"https://t.me/botmzt/{parse_id}?embed=1"
+            url = f"https://t.me/botmzt/{parse_id}?embed=1&single=1"
             rep = requests.get(url, headers=base_hd.update({'Referer': url}), timeout=22)
             imgs = re.findall(r"background-image:url\('(http.*?)'\)", rep.text)
             if imgs:
